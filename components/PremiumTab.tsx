@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { Check, Star, MessageSquare, ShieldCheck, Zap, Lock, Unlock } from 'lucide-react';
+import React from 'react';
+import { Star, Check, ShieldCheck, Zap, MessageCircle } from 'lucide-react';
 import { UserData } from '../types';
 
 interface PremiumTabProps {
@@ -9,126 +9,113 @@ interface PremiumTabProps {
 }
 
 const PremiumTab: React.FC<PremiumTabProps> = ({ userData, updateUserData }) => {
-  const [promoCode, setPromoCode] = useState('');
-  const [promoError, setPromoError] = useState('');
-
   const plans = [
-    { id: '1month', title: '1 Mês', price: 'R$ 19,90', period: '/mês' },
-    { id: '6months', title: '6 Meses', price: 'R$ 89,90', period: ' (Economize 25%)', popular: true },
-    { id: '1year', title: '1 Ano', price: 'R$ 149,90', period: ' (Melhor Valor)' },
+    { id: '1m', name: '1 mês', price: 'R$ 19,90', period: '/mês' },
+    { id: '6m', name: '6 meses', price: 'R$ 89,90', period: '/semestre', popular: true },
+    { id: '1y', name: '1 ano', price: 'R$ 149,90', period: '/ano' },
   ];
 
-  const handleSubscribe = (plan: string) => {
-    const message = `Olá! Gostaria de assinar o Plano Premium (${plan}) no app RESET. Meu ID de usuário é: ${userData.id}`;
-    const encoded = encodeURIComponent(message);
-    window.open(`https://wa.me/5500000000000?text=${encoded}`, '_blank');
+  const handleSubscribe = (planName: string) => {
+    // Gerar ID apenas agora, se ainda não existir
+    let currentId = userData.id;
+    if (!currentId) {
+      currentId = Math.random().toString(36).substr(2, 9).toUpperCase();
+      // Atualiza localmente para persistir
+      updateUserData({ id: currentId });
+    }
+
+    // Texto exato com ID e Plano escolhido
+    const text = `Olá! Quero assinar o RESET – Vício Zero. Meu plano escolhido é: ${planName}. Meu ID único: ${currentId}`;
+    
+    // Número solicitado: +55 11 91647-7226
+    const url = `https://wa.me/5511916477226?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
   };
 
-  const handleValidateCode = () => {
-    // Fake validation logic
-    if (promoCode.toUpperCase() === 'RESET100' || promoCode.toUpperCase() === 'ZEROVICIO') {
-      updateUserData({ isPremium: true });
-      alert("Parabéns! Acesso Premium liberado com sucesso.");
-      setPromoCode('');
-    } else {
-      setPromoError("Código inválido ou expirado.");
-      setTimeout(() => setPromoError(''), 3000);
-    }
+  const getTrialRemaining = () => {
+    const installDate = new Date(userData.installDate).getTime();
+    const now = new Date().getTime();
+    const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
+    const remaining = Math.max(0, Math.ceil((installDate + sevenDaysInMs - now) / (1000 * 60 * 60 * 24)));
+    return remaining;
   };
 
   if (userData.isPremium) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[70vh] text-center space-y-6 animate-in zoom-in duration-500">
-        <div className="w-24 h-24 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center shadow-2xl shadow-amber-500/20">
-          <ShieldCheck size={48} className="text-slate-950" />
+      <div className="flex flex-col items-center justify-center text-center py-16 space-y-8 animate-in zoom-in duration-500">
+        <div className="w-28 h-28 bg-amber-400 rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(251,191,36,0.3)] animate-pulse">
+           <Star fill="black" size={56} className="text-black" />
         </div>
-        <h2 className="text-3xl font-bold text-white">Você é Premium!</h2>
-        <p className="text-slate-400 max-w-[280px]">
-          Todos os recursos foram desbloqueados. Obrigado por apoiar o RESET – Vício Zero.
-        </p>
-        <div className="bg-slate-800 p-4 rounded-2xl w-full border border-slate-700">
-          <p className="text-amber-400 text-xs font-bold uppercase mb-1">Status da Assinatura</p>
-          <p className="text-white font-medium">Ativa Vitalícia (Via Código)</p>
+        <div>
+          <h2 className="text-4xl font-black text-white mb-2 italic">VOCÊ É VIP</h2>
+          <p className="text-slate-400 max-w-xs mx-auto">Acesso total liberado para sempre. Obrigado por lutar pela sua liberdade!</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700">
-      <header className="text-center">
-        <div className="inline-flex items-center justify-center p-3 bg-indigo-500/10 rounded-2xl text-indigo-400 mb-4">
-          <Star fill="currentColor" size={24} />
+    <div className="space-y-8 animate-in fade-in duration-700 pb-10">
+      <header className="text-center pt-4">
+        <div className="inline-flex items-center justify-center p-4 bg-amber-500/10 rounded-3xl text-amber-500 mb-6 border border-amber-500/20">
+          <Star fill="currentColor" size={32} />
         </div>
-        <h2 className="text-2xl font-bold text-white mb-2">Seja PREMIUM</h2>
-        <p className="text-slate-400 text-sm">Desbloqueie o poder total da sua liberdade.</p>
+        <h2 className="text-3xl font-black text-white mb-2 italic tracking-tight uppercase">Área VIP</h2>
+        <p className="text-slate-400 text-sm max-w-xs mx-auto leading-relaxed">Assine para desbloquear todas as ferramentas e apoiar o projeto.</p>
+        
+        <div className="mt-6 bg-slate-900 border border-slate-800 rounded-full py-2.5 px-6 inline-block">
+           <p className="text-[10px] font-black text-amber-500 uppercase tracking-[0.2em]">
+             {getTrialRemaining() > 0 ? `${getTrialRemaining()} dias de teste grátis restantes` : "Período de teste encerrado"}
+           </p>
+        </div>
       </header>
 
-      {/* Benefits */}
-      <div className="space-y-3">
-        <Benefit icon={<ShieldCheck size={18} />} text="Acesso ilimitado ao modo S.O.S" />
-        <Benefit icon={<Zap size={18} />} text="Conselhos personalizados por IA" />
-        <Benefit icon={<MessageSquare size={18} />} text="Suporte prioritário via WhatsApp" />
-        <Benefit icon={<Lock size={18} />} text="Proteção por Biometria/Senha" />
+      <div className="grid grid-cols-1 gap-3">
+        <Benefit icon={<ShieldCheck className="text-blue-500" />} text="Estatísticas de progresso detalhadas" />
+        <Benefit icon={<Zap className="text-amber-500" />} text="Desafios e conquistas exclusivas" />
+        <Benefit icon={<MessageCircle className="text-green-500" />} text="Suporte VIP via WhatsApp" />
       </div>
 
-      {/* Plans */}
-      <div className="space-y-4">
+      <div className="space-y-4 pt-4">
+        <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest text-center">Escolha o plano para assinar</h3>
         {plans.map((plan) => (
-          <button 
+          <button
             key={plan.id}
-            onClick={() => handleSubscribe(plan.title)}
-            className={`w-full p-5 rounded-3xl border text-left flex justify-between items-center transition-all ${
-              plan.popular ? 'bg-indigo-600 border-indigo-500 shadow-xl shadow-indigo-500/20' : 'bg-slate-800 border-slate-700'
-            }`}
+            onClick={() => handleSubscribe(plan.name)}
+            className={`w-full p-6 rounded-[32px] border text-left flex justify-between items-center transition-all ${
+              plan.popular ? 'bg-blue-600 border-blue-400 shadow-xl shadow-blue-600/30 ring-2 ring-blue-400/20' : 'bg-slate-900 border-slate-800'
+            } active:scale-95`}
           >
             <div>
               <div className="flex items-center gap-2">
-                <span className={`font-bold ${plan.popular ? 'text-white' : 'text-slate-200'}`}>{plan.title}</span>
-                {plan.popular && <span className="text-[10px] bg-white text-indigo-600 px-2 py-0.5 rounded-full font-black uppercase">Popular</span>}
+                <span className={`font-black text-xl italic ${plan.popular ? 'text-white' : 'text-slate-200'}`}>{plan.name}</span>
+                {plan.popular && <span className="bg-white text-blue-600 text-[10px] px-2.5 py-1 rounded-full font-black uppercase">MELHOR VALOR</span>}
               </div>
-              <p className={`text-xs ${plan.popular ? 'text-indigo-200' : 'text-slate-500'}`}>{plan.period}</p>
+              <p className={`text-xs font-medium ${plan.popular ? 'text-blue-100' : 'text-slate-500'}`}>Desbloqueio imediato {plan.period}</p>
             </div>
             <div className="text-right">
-              <span className={`text-lg font-bold ${plan.popular ? 'text-white' : 'text-indigo-400'}`}>{plan.price}</span>
+              <span className={`text-2xl font-black ${plan.popular ? 'text-white' : 'text-blue-500'}`}>{plan.price}</span>
             </div>
           </button>
         ))}
       </div>
 
-      {/* Coupon Area */}
-      <div className="pt-4 space-y-3">
-        <p className="text-xs text-slate-500 font-bold uppercase tracking-widest text-center">Tem um código?</p>
-        <div className="flex gap-2">
-          <input 
-            type="text" 
-            placeholder="Ex: RESET100"
-            value={promoCode}
-            onChange={(e) => setPromoCode(e.target.value)}
-            className="flex-1 bg-slate-800 border border-slate-700 rounded-2xl px-5 py-3 text-white outline-none focus:border-indigo-500 transition-colors"
-          />
-          <button 
-            onClick={handleValidateCode}
-            className="bg-indigo-500 hover:bg-indigo-400 px-6 rounded-2xl font-bold flex items-center gap-2"
-          >
-            <Unlock size={18} /> ATIVAR
-          </button>
-        </div>
-        {promoError && <p className="text-rose-500 text-xs text-center animate-pulse">{promoError}</p>}
+      <div className="pt-4 text-center">
+        <p className="text-[10px] text-slate-600 font-bold uppercase tracking-widest mb-6 px-10">
+          Ao clicar em um plano, seu ID será gerado e você falará conosco no WhatsApp Business.
+        </p>
       </div>
-      
-      <p className="text-[10px] text-slate-500 text-center pb-8">
-        Ao assinar, você concorda com nossos Termos de Uso e Política de Privacidade.
-      </p>
     </div>
   );
 };
 
 const Benefit: React.FC<{ icon: React.ReactNode; text: string }> = ({ icon, text }) => (
-  <div className="flex items-center gap-3 text-slate-300 bg-slate-800/20 p-3 rounded-xl border border-slate-800/50">
-    <div className="text-indigo-400">{icon}</div>
-    <span className="text-sm font-medium">{text}</span>
-    <Check className="ml-auto text-emerald-500" size={16} />
+  <div className="bg-slate-900/40 p-4 rounded-2xl border border-slate-800/50 flex items-center gap-4">
+    <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center flex-shrink-0">
+      {icon}
+    </div>
+    <p className="text-sm font-bold text-slate-300">{text}</p>
+    <Check className="ml-auto text-blue-500 opacity-50" size={16} />
   </div>
 );
 
